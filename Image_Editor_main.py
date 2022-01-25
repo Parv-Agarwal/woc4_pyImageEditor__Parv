@@ -14,8 +14,28 @@ image_canvas = Canvas(root, width = 670, height = 500, bg = "white")    # canvas
 image_canvas.place(relx = 0.3, rely = 0.5, anchor= CENTER)
 
 #Frames defined
+crop_data_frame = LabelFrame(root, text = "ENTER COORDINATES")
+crop_data_frame.place(relx = 0.78, rely = 0.08, anchor = NE)
 colour_change_frame = LabelFrame(root, text = "COLOUR MANIPULATION", pady = 20)
 colour_change_frame.place(relx = 0.96, rely = 0.33, anchor = NE)
+
+#INPUTS DEFINED FOR CROP IMAGE
+x1 = Entry(crop_data_frame, width = 10)
+x1.grid(row = 0, column = 1, padx = 5, pady = 4)
+x2 = Entry(crop_data_frame, width = 10)
+x2.grid(row = 0, column = 4, padx = 5, pady = 4)
+y1 = Entry(crop_data_frame, width = 10)
+y1.grid(row = 1, column = 1, padx = 5, pady = 4)
+y2 = Entry(crop_data_frame, width = 10)
+y2.grid(row = 1, column = 4, padx = 5, pady = 4)
+
+#Labels in the frame crop_data_frame defined
+wr_x1 = Label(crop_data_frame, text = "x1: ").grid(row = 0, column = 0, pady = 4)
+wr_x1 = Label(crop_data_frame, text = "x2: ").grid(row = 0, column = 3, pady = 4)
+wr_x1 = Label(crop_data_frame, text = "y1: ").grid(row = 1, column = 0, pady = 4)
+wr_x1 = Label(crop_data_frame, text = "y2: ").grid(row = 1, column = 3, pady = 4)
+rat1 = Label(crop_data_frame, text = "  :  ").grid(row = 0, column = 2, pady = 4)
+rat2 = Label(crop_data_frame, text = "  :  ").grid(row = 1, column = 2, pady = 4)
 
 image1 = Image.open("Images/scene1.png")
 h = image1.height
@@ -118,7 +138,7 @@ def inv_img():      # function for invert image
     image2 = ImageTk.PhotoImage(ims)
     image_canvas.create_image(335, 250, anchor = CENTER, image = image2)
 
-def img_bw():       
+def img_bw():         #function for converting image to black and white
     global ims
     global image_show
     global image2
@@ -183,7 +203,7 @@ def rot():      # function for rotating
     image_canvas.create_image(335, 250, anchor = CENTER, image = image2)
 
 def image_sat_slide(var):            #function for saturation slider
-    global ims, image_sat_slider
+    global ims
     global image_show
     global image2
     image_canvas.delete(image_show)
@@ -216,7 +236,7 @@ def image_sat():            #function for saturation button
         return
 
 def image_sharp_slide(var):       #function for sharpness slider
-    global ims, image_sat_slider
+    global ims
     global image_show
     global image2
     image_canvas.delete(image_show)
@@ -243,7 +263,7 @@ def image_sharp():     #function for sharpness button
         return
 
 def image_exp_slide(var):       #function for exposure slider
-    global ims, image_sat_slider
+    global ims
     global image_show
     global image2
     image_canvas.delete(image_show)
@@ -259,7 +279,7 @@ def image_exp_slide(var):       #function for exposure slider
 def image_exp():     #function for exposure button
     mess_box = messagebox.askyesno("Popup!", "Are you sure that you want to apply exposure")
     if mess_box == 1:
-        global ims, image_sat_slider
+        global ims
         global image_show
         global image2
         image_canvas.delete(image_show)
@@ -275,8 +295,46 @@ def image_exp():     #function for exposure button
     else:
         return
 
-def crop_img():
-    return
+def crop_img():                  #function for cropping image
+    global ims
+    global image_show
+    global image2
+    image_canvas.delete(image_show)
+
+    #algorithm for cropping image using numpy array
+    image_arr = np.array(ims)                             #array initialisation
+    image_arr = image_arr[int(x1.get()):int(x2.get()), int(y1.get()): int(y2.get())]
+    ims = Image.fromarray(image_arr)
+
+    image2 = ImageTk.PhotoImage(ims)
+    image_canvas.create_image(335, 250, anchor = CENTER, image = image2)
+
+def ret_img():              #function for retrieving image
+    global image1 
+    global image2
+    global image_show
+    global ims, h, w
+
+    mess_box = messagebox.askyesno("Popup!", "Are you sure that you want to discard the changes")
+    if mess_box == 1:
+        h = image1.height
+        w = image1.width
+        m = max(h, w)
+        if h < 400 and w < 600:
+            h = h
+            w = w
+        else:
+            if w == m:
+                h = round(h/w * 600)
+                w = 600
+            else: 
+                w = round((w/h) * 400)
+                h = 400
+        ims = image1.resize((w, h))
+        image2 = ImageTk.PhotoImage(ims)
+        image_canvas.create_image(335, 250, anchor = CENTER, image = image2)
+    else:
+        return
 
 # BUTTONS DEFINAITION
 new_file_button = Button(root, text = "New Image", command= new_image)
@@ -290,6 +348,7 @@ image_sharp_button = Button(root, text = "APPLY SHARPNESS", command = image_shar
 image_exp_button = Button(root, text = "APPLY EXPOSURE", command = image_exp, padx = 20, pady = 10)
 image_bw_button = Button(colour_change_frame, text = "BLACK AND WHITE IMAGE", command = img_bw, padx = 30, pady = 15)
 crop_button = Button(root, text = "CROP IMAGE", command = crop_img, padx = 50, pady = 20)
+ret_button = Button(root, text = "RETRIEVE ORIGINAL IMAGE", command = ret_img, padx = 30, pady = 10)
 
 # BUTTONS EXECUTION
 new_file_button.grid(row=0,column=0)
@@ -302,7 +361,8 @@ image_sat_button.place(relx = 0.95, rely = 0.67, anchor= NE)
 image_sharp_button.place(relx = 0.95, rely = 0.8, anchor= NE)
 image_exp_button.place(relx = 0.95, rely = 0.93, anchor= NE)
 image_bw_button.grid(row = 0, column = 1, padx= 20)   
-#crop_button.place(relx = 0.95, rely = 0.08, anchor= NE)
+crop_button.place(relx = 0.95, rely = 0.08, anchor= NE)
+ret_button.place(relx = 0.85, rely = 0.01, anchor= NE)
 
 #SLIDERS
 rot_slider = Scale(root, from_= 0, to=360, length = 180, orient=HORIZONTAL)
