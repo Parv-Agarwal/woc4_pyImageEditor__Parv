@@ -161,7 +161,7 @@ def rot():      # function for rotating right
     image2 = ImageTk.PhotoImage(ims)
     image_canvas.create_image(335, 250, anchor = CENTER, image = image2)
 
-def image_sat_slide(var):
+def image_sat_slide(var):            #function for saturation slider
     global ims, image_sat_slider
     global image_show
     global image2
@@ -175,9 +175,9 @@ def image_sat_slide(var):
     image2 = ImageTk.PhotoImage(ims_var)
     image_canvas.create_image(335, 250, anchor = CENTER, image = image2)
 
-def image_sat():
+def image_sat():            #function for saturation button
     mess_box = messagebox.askyesno("Popup!", "Are you sure that you want to apply saturation")
-    if messagebox == 1:
+    if mess_box == 1:
         global ims, image_sat_slider
         global image_show
         global image2
@@ -190,6 +190,67 @@ def image_sat():
         ims = im_sat.enhance(x)
         image2 = ImageTk.PhotoImage(ims)
         image_canvas.create_image(335, 250, anchor = CENTER, image = image2)
+        image_sat_slider.set(0)
+    else:
+        return
+
+def image_sharp_slide(var):       #function for sharpness slider
+    global ims, image_sat_slider
+    global image_show
+    global image2
+    image_canvas.delete(image_show)
+    x = 0.5 + float(image_sharp_slider.get())/2      #defining sharpness scale
+    im_sat = ImageEnhance.Sharpness(ims)
+    ims_var = im_sat.enhance(x)
+    image2 = ImageTk.PhotoImage(ims_var)
+    image_canvas.create_image(335, 250, anchor = CENTER, image = image2)
+
+def image_sharp():     #function for sharpness button
+    mess_box = messagebox.askyesno("Popup!", "Are you sure that you want to apply sharpness")
+    if mess_box == 1:
+        global ims, image_sat_slider
+        global image_show
+        global image2
+        image_canvas.delete(image_show)
+        x = 0.5 + float(image_sharp_slider.get())/2      #defining sharpness scale
+        im_sat = ImageEnhance.Sharpness(ims)
+        ims = im_sat.enhance(x)
+        image2 = ImageTk.PhotoImage(ims)
+        image_canvas.create_image(335, 250, anchor = CENTER, image = image2)
+        image_sharp_slider.set(1)
+    else:
+        return
+
+def image_exp_slide(var):       #function for exposure slider
+    global ims, image_sat_slider
+    global image_show
+    global image2
+    image_canvas.delete(image_show)
+    if int(image_exp_slider.get()) >= 0:             #defining sacle of exposure
+        x = float(image_exp_slider.get())/100 + 1
+    else:
+        x = 1 - abs(float(image_exp_slider.get())/200)
+    im_sat = ImageEnhance.Brightness(ims)
+    ims_var = im_sat.enhance(x)
+    image2 = ImageTk.PhotoImage(ims_var)
+    image_canvas.create_image(335, 250, anchor = CENTER, image = image2)
+
+def image_exp():     #function for exposure button
+    mess_box = messagebox.askyesno("Popup!", "Are you sure that you want to apply exposure")
+    if mess_box == 1:
+        global ims, image_sat_slider
+        global image_show
+        global image2
+        image_canvas.delete(image_show)
+        if int(image_exp_slider.get()) >= 0:             #defining sacle of exposure
+            x = float(image_exp_slider.get())/100 + 1
+        else:
+            x = 1 - abs(float(image_exp_slider.get())/200)
+        im_sat = ImageEnhance.Brightness(ims)
+        ims = im_sat.enhance(x)
+        image2 = ImageTk.PhotoImage(ims)
+        image_canvas.create_image(335, 250, anchor = CENTER, image = image2)
+        image_sharp_slider.set(1)
     else:
         return
 
@@ -201,6 +262,8 @@ flip_horiz_button = Button(root, text = "FLIP HORIZONTAL", command = flip_horiz,
 inv_img_button = Button(colour_change_frame, text = "INVERT IMAGE", command = inv_img, padx = 50, pady = 20)
 rot_button = Button(root, text = "ROTATE IMAGE", command = rot, padx = 50, pady = 20)
 image_sat_button = Button(root, text = "APPLY SATURATION", command = image_sat, padx = 20, pady = 10)
+image_sharp_button = Button(root, text = "APPLY SHARPNESS", command = image_sharp, padx = 20, pady = 10)
+image_exp_button = Button(root, text = "APPLY EXPOSURE", command = image_exp, padx = 20, pady = 10)
 
 # BUTTONS EXECUTION
 new_file_button.grid(row=0,column=0)
@@ -210,6 +273,9 @@ flip_horiz_button.place(relx = 0.95, rely = 0.2, anchor= NE)
 inv_img_button.pack()   
 rot_button.place(relx = 0.95, rely = 0.54, anchor= NE)
 image_sat_button.place(relx = 0.95, rely = 0.67, anchor= NE)
+image_sharp_button.place(relx = 0.95, rely = 0.8, anchor= NE)
+image_exp_button.place(relx = 0.95, rely = 0.93, anchor= NE)
+
 
 #SLIDERS
 rot_slider = Scale(root, from_= 0, to=360, length = 180, orient=HORIZONTAL)
@@ -217,5 +283,9 @@ rot_slider.place(relx = 0.75, rely = 0.54, anchor= NE)
 image_sat_slider = Scale(root, from_= -100, to = 100, length = 180, orient=HORIZONTAL, command= image_sat_slide)
 image_sat_slider.set(0)
 image_sat_slider.place(relx = 0.75, rely = 0.67, anchor= NE)
-
+image_sharp_slider = Scale(root, from_= 1, to = 100, length = 180, orient=HORIZONTAL, command= image_sharp_slide)
+image_sharp_slider.place(relx = 0.75, rely = 0.8, anchor= NE)
+image_exp_slider = Scale(root, from_= -100, to = 100, length = 180, orient=HORIZONTAL, command= image_exp_slide)
+image_exp_slider.set(0)
+image_exp_slider.place(relx = 0.75, rely = 0.93, anchor= NE)
 root.mainloop()
