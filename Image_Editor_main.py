@@ -14,8 +14,8 @@ image_canvas = Canvas(root, width = 670, height = 500, bg = "white")    # canvas
 image_canvas.place(relx = 0.3, rely = 0.5, anchor= CENTER)
 
 #Frames defined
-colour_change_frame = LabelFrame(root, text = "COLOUR MANIPULATION", padx = 20, pady = 20)
-colour_change_frame.place(relx = 0.85, rely = 0.33, anchor = NE)
+colour_change_frame = LabelFrame(root, text = "COLOUR MANIPULATION", pady = 20)
+colour_change_frame.place(relx = 0.96, rely = 0.33, anchor = NE)
 
 image1 = Image.open("Images/scene1.png")
 h = image1.height
@@ -118,7 +118,28 @@ def inv_img():      # function for invert image
     image2 = ImageTk.PhotoImage(ims)
     image_canvas.create_image(335, 250, anchor = CENTER, image = image2)
 
-def rot():      # function for rotating right
+def img_bw():       
+    global ims
+    global image_show
+    global image2
+    mess_box = messagebox.askyesno("Popup!", "Are you sure that you want to convert the image into a black and white image")   #applying message box
+    if mess_box == 1:
+        image_canvas.delete(image_show)
+
+        #algorithm for converting image into black and white image using grayscale formula 
+        p_access = ims.getdata()         
+        list_ni = []
+        for x in p_access:
+                list_ni.append(x[0]*0.299 + x[1]*0.587 + x[2]*0.114)       #Here i used the (r, g, b) to grayscale code formula which is 0.299 * R + 0.587 * G + 0.114 * B
+        ims = Image.new("L", ims.size)  
+        ims.putdata(list_ni)  
+
+        image2 = ImageTk.PhotoImage(ims)
+        image_canvas.create_image(335, 250, anchor = CENTER, image = image2)
+    else:
+        return
+
+def rot():      # function for rotating
     global ims, w, h, rot_slider
     global image_show
     global image2
@@ -254,28 +275,34 @@ def image_exp():     #function for exposure button
     else:
         return
 
+def crop_img():
+    return
+
 # BUTTONS DEFINAITION
 new_file_button = Button(root, text = "New Image", command= new_image)
 save_file_button = Button(root, text = "Save", command= save_image)
 flip_vert_button = Button(root, text = "FLIP VERTICAL", command = flip_vert, padx = 50, pady = 20)
 flip_horiz_button = Button(root, text = "FLIP HORIZONTAL", command = flip_horiz, padx = 50, pady = 20)
-inv_img_button = Button(colour_change_frame, text = "INVERT IMAGE", command = inv_img, padx = 50, pady = 20)
+inv_img_button = Button(colour_change_frame, text = "INVERT IMAGE", command = inv_img, padx = 30, pady = 15)
 rot_button = Button(root, text = "ROTATE IMAGE", command = rot, padx = 50, pady = 20)
 image_sat_button = Button(root, text = "APPLY SATURATION", command = image_sat, padx = 20, pady = 10)
 image_sharp_button = Button(root, text = "APPLY SHARPNESS", command = image_sharp, padx = 20, pady = 10)
 image_exp_button = Button(root, text = "APPLY EXPOSURE", command = image_exp, padx = 20, pady = 10)
+image_bw_button = Button(colour_change_frame, text = "BLACK AND WHITE IMAGE", command = img_bw, padx = 30, pady = 15)
+crop_button = Button(root, text = "CROP IMAGE", command = crop_img, padx = 50, pady = 20)
 
 # BUTTONS EXECUTION
 new_file_button.grid(row=0,column=0)
 save_file_button.grid(row = 0, column =1)
 flip_vert_button.place(relx = 0.75, rely = 0.2, anchor= NE)
 flip_horiz_button.place(relx = 0.95, rely = 0.2, anchor= NE)
-inv_img_button.pack()   
+inv_img_button.grid(row = 0, column = 0, padx= 20)   
 rot_button.place(relx = 0.95, rely = 0.54, anchor= NE)
 image_sat_button.place(relx = 0.95, rely = 0.67, anchor= NE)
 image_sharp_button.place(relx = 0.95, rely = 0.8, anchor= NE)
 image_exp_button.place(relx = 0.95, rely = 0.93, anchor= NE)
-
+image_bw_button.grid(row = 0, column = 1, padx= 20)   
+#crop_button.place(relx = 0.95, rely = 0.08, anchor= NE)
 
 #SLIDERS
 rot_slider = Scale(root, from_= 0, to=360, length = 180, orient=HORIZONTAL)
