@@ -73,8 +73,9 @@ def new_image():           # function for new image button
     ims = image1.resize((w, h))
     image2 = ImageTk.PhotoImage(ims)
     image_canvas.create_image(335, 250, anchor = CENTER, image = image2)
-    next_button["state"] = "disable"
-    back_button["state"] = "disable"
+    next_button["state"] = "disable"           #disable next image button whenver new image is loaded
+    back_button["state"] = "disable"            #disable previous image button whenver new image is loaded
+    gen_cert_button["state"] = "disable"             #disable generate certificate button whenver new image is loaded
 
 def save_image():    # function to save images
     global image1 
@@ -422,6 +423,33 @@ def back_img(i_n):                             #back button to view multiple cer
         back_button = Button(root, text = "BACK", command = lambda: back_img(i_n - 1), padx = 7, pady = 4)          #used recurssion to generate the previous image
         back_button.place(relx = 0.08, rely = 0.865, anchor= NE)
     
+def high_bord():          #function to highlight border
+    global ims, image2, image_show
+    mess_box = messagebox.askyesno("Popup!", "Are you sure that you want to highlight border of the image")
+    if mess_box == 1:
+        img_read = cv.imread(img_filename)
+        img_read =   cv.resize(img_read, (w, h))
+        img_canny = cv.Canny(img_read, 125, 150)           #used edge cascade
+        ims = Image.fromarray(img_canny)
+        image2 = ImageTk.PhotoImage(ims)
+        image_canvas.create_image(335, 250, anchor = CENTER, image = image2)
+    else:
+        return
+
+def blend_img():         #function to blend images
+    global ims, image2, image_show
+    global w, h
+
+    #algorithm to blend images using numpy arrays
+    img1_arr = np.array((ims))     
+    img2_filename = filedialog.askopenfilename(initialdir= "/woc4_pyImageEditor_Parv/Images", title = "Select an image", filetypes=(("png images", "*.png"), ("jpg images", "*.jpg")))
+    img_blend = Image.open(img2_filename)
+    ims2 = ims = img_blend.resize((w, h))
+    img2_arr = np.array(ims2) 
+    blend_res = (img1_arr * 0.6 + img2_arr * 0.4).astype(np.uint8)   # Blending imsges in
+    ims = Image.fromarray(blend_res)
+    image2 = ImageTk.PhotoImage(ims)
+    image_canvas.create_image(335, 250, anchor = CENTER, image = image2)
 
 # BUTTONS DEFINAITION
 new_file_button = Button(root, text = "New Image", command= new_image)
@@ -443,6 +471,8 @@ next_button = Button(root, text = "NEXT", command = lambda: next_img(1), padx = 
 back_button = Button(root, text = "BACK", command = back_img, padx = 7, pady = 4, state = DISABLED)
 sel_csv_button = Button(multiple_gen_frame, text = "SELECT .CSV FILE", command = open_cvs, padx = 15, pady = 8)
 gen_cert_button = Button(multiple_gen_frame, text = "GENERATE CERTIFICATES", command = get_cert, padx = 15, pady = 8, state = DISABLED)
+high_bord_button = Button(root, text = "HIGHLIGHT BORDER", command = high_bord, padx = 25, pady = 10)
+blend_img_button = Button(root, text = "BLEND IMAGE", command = blend_img, padx = 50, pady = 15)
 
 # BUTTONS EXECUTION
 new_file_button.grid(row=0,column=0)
@@ -464,6 +494,8 @@ back_button.place(relx = 0.08, rely = 0.865, anchor= NE)
 next_button.place(relx = 0.51, rely = 0.865, anchor= NE)
 sel_csv_button.grid(row = 0, column = 0, padx= 10, pady = 10) 
 gen_cert_button.grid(row = 0, column = 1, padx= 10, pady = 10) 
+high_bord_button.place(relx = 0.82, rely = 0.93, anchor= NE)
+blend_img_button.place(relx = 0.35, rely = 0.91, anchor= NE)
 
 #SLIDERS
 rot_slider = Scale(root, from_= 0, to=360, length = 180, orient=HORIZONTAL)
