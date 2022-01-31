@@ -1,14 +1,12 @@
-from fileinput import filename
-from opcode import hasnargs
 from tkinter import *
 from tkinter import filedialog, messagebox
 from tkinter import colorchooser
 from PIL import Image, ImageTk, ImageEnhance, ImageDraw, ImageFont
 from math import floor
 import math
-from cv2 import cvtColor
 import numpy as np
 import cv2 as cv
+import pandas as pd
 
 root = Tk()
 root.geometry("1300x700")
@@ -19,32 +17,19 @@ image_canvas = Canvas(root, width = 670, height = 500, bg = "white")    # canvas
 image_canvas.place(relx = 0.3, rely = 0.5, anchor= CENTER)
 
 #Frames defined
-crop_data_frame = LabelFrame(root, text = "ENTER COORDINATES")
-crop_data_frame.place(relx = 0.78, rely = 0.08, anchor = NE)
 colour_change_frame = LabelFrame(root, text = "COLOUR MANIPULATION", pady = 20)
 colour_change_frame.place(relx = 0.96, rely = 0.33, anchor = NE)
+multiple_gen_frame = LabelFrame(root, text = "MULTIPLE CERTIFICATES GENERATION")
+multiple_gen_frame.place(relx = 0.57, rely = 0.015, anchor = NE)
 
 #INPUTS DEFINED
-x1 = Entry(crop_data_frame, width = 10)
-x1.grid(row = 0, column = 1, padx = 5, pady = 4)
-x2 = Entry(crop_data_frame, width = 10)
-x2.grid(row = 0, column = 4, padx = 5, pady = 4)
-y1 = Entry(crop_data_frame, width = 10)
-y1.grid(row = 1, column = 1, padx = 5, pady = 4)
-y2 = Entry(crop_data_frame, width = 10)
-y2.grid(row = 1, column = 4, padx = 5, pady = 4)
 text_entry = Entry(root, width = 50)
 text_entry.place(relx = 0.825, rely= 0.88, anchor = NE)
 
+#LABELS DEFINED
 text_entry_label = Label(root, text = "ENTER TEXT: ").place(relx = 0.535, rely= 0.88)
-
-#Labels in the frame crop_data_frame defined
-wr_x1 = Label(crop_data_frame, text = "x1: ").grid(row = 0, column = 0, pady = 4)
-wr_x1 = Label(crop_data_frame, text = "x2: ").grid(row = 0, column = 3, pady = 4)
-wr_x1 = Label(crop_data_frame, text = "y1: ").grid(row = 1, column = 0, pady = 4)
-wr_x1 = Label(crop_data_frame, text = "y2: ").grid(row = 1, column = 3, pady = 4)
-rat1 = Label(crop_data_frame, text = "  :  ").grid(row = 0, column = 2, pady = 4)
-rat2 = Label(crop_data_frame, text = "  :  ").grid(row = 1, column = 2, pady = 4)
+text_entry_label = Label(root, text = "*NOTE - (PRESS 'ENTER' KEY TWICE TO CROP").place(relx =0.8, rely= 0.095, anchor = NE)
+text_entry_label = Label(root, text = "THE IMAGE AFTER SELECTING AREA)").place(relx =0.8, rely= 0.12, anchor = NE)
 
 img_filename = "Images/scene1.png"
 image1 = Image.open(img_filename)
@@ -70,7 +55,6 @@ def new_image():           # function for new image button
     global image2
     global image_show
     global ims, h, w
-    image_canvas.delete(image_show)
     img_filename = filedialog.askopenfilename(initialdir= "/woc4_pyImageEditor_Parv/Images", title = "Select an image", filetypes=(("png images", "*.png"), ("jpg images", "*.jpg")))
     image1 = Image.open(img_filename)
     h = image1.height
@@ -89,6 +73,8 @@ def new_image():           # function for new image button
     ims = image1.resize((w, h))
     image2 = ImageTk.PhotoImage(ims)
     image_canvas.create_image(335, 250, anchor = CENTER, image = image2)
+    next_button["state"] = "disable"
+    back_button["state"] = "disable"
 
 def save_image():    # function to save images
     global image1 
@@ -99,7 +85,6 @@ def flip_vert():      # function for flip vertical
     global ims, w, h
     global image_show
     global image2
-    image_canvas.delete(image_show)
 
     # algorithm for flip vertical:
     for x in range(1, w):
@@ -117,7 +102,6 @@ def flip_horiz():      # function for flip horizontal
     global ims,w, h
     global image_show
     global image2
-    image_canvas.delete(image_show)
     
     # algorithm for flip horizontal:
     for x in range(1, round(w/2)):
@@ -135,7 +119,6 @@ def inv_img():      # function for invert image
     global ims, w, h
     global image_show
     global image2
-    image_canvas.delete(image_show)
     
     # algorithm to invert colours:
     for x in range(1, w):
@@ -273,14 +256,19 @@ def image_exp():     #function for exposure button
         return
 
 def crop_img():                  #function for cropping image
-    global ims
+    global ims, roi
     global image_show
     global image2
+    
+    img_read = cv.imread(img_filename)
+    img_read =   cv.resize(img_read, (w, h))
+    roi = cv.selectROI("SELECT AREA", img_read)
+    cv.waitKey(0)
     image_canvas.delete(image_show)
 
     #algorithm for cropping image using numpy array
     image_arr = np.array(ims)                             #array initialisation
-    image_arr = image_arr[int(y1.get()): int(y2.get()) , int(x1.get()):int(x2.get())]
+    image_arr = image_arr[int(roi[1]):int(roi[1] + roi[3]), int(roi[0]):int(roi[0] + roi[2])]
     ims = Image.fromarray(image_arr)
 
     image2 = ImageTk.PhotoImage(ims)
@@ -313,7 +301,7 @@ def ret_img():              #function for retrieving image
     else:
         return
 
-def insert_text():
+def insert_text():                #function to insert text on image
     global text, font_entry, x, y
     font_entry = colorchooser.askcolor()[1]
     def change_position(event):
@@ -327,7 +315,7 @@ def insert_text():
     text = image_canvas.create_text(50, 50, text= text_entry.get(), fill= font_entry, font=('arial', 20))
     image_canvas.bind("<B1-Motion>", change_position)
 
-def fix_pos():
+def fix_pos():                              #function to fix position of inserted text
     global ims, x, y, font_entry
     global image_show
     global image2
@@ -339,19 +327,101 @@ def fix_pos():
     image_canvas.create_image(335, 250, anchor = CENTER, image = image2)
     text_entry.delete(0, END)
 
-def face_det():
+def face_det():                            #function to detect face
     global img_filename, h, w 
     img_read = cv.imread(img_filename)
     img_read = cv.resize(img_read, (w, h))
     img_gray = cv.cvtColor(img_read, cv.COLOR_BGR2GRAY)
 
     #algorithm for face detection
-    haar_cascade_face = cv.CascadeClassifier("haar_FaceDetect.xml")      
+    haar_cascade_face = cv.CascadeClassifier("haar_FaceDetect.xml")              #used haar cascades (copiied 'haar_FaceDetect.xml' from github opencv)
     face_det_rect = haar_cascade_face.detectMultiScale(img_gray, scaleFactor = 1.1, minNeighbors = 4)
     for (x, y, w_f, h_f) in face_det_rect:                                 #making rectangle around detected face
         cv.rectangle(img_read, (x, y), (x + w_f, y + h_f), (0,255,0), thickness = 2)           
     
-    cv.imshow("Detected images", img_read)
+    cv.imshow("DETECTED FACES", img_read)
+
+def open_cvs():                     #function to open cvs file                    
+    global file_cvs
+    file_cvs = filedialog.askopenfilename(initialdir= "/woc4_pyImageEditor_Parv/Images", title = "Select a CSV file", filetypes=(("csv files", "*.csv"), ("excel files", "*.xlsx")))
+    messagebox.showinfo("INFORMATION", "DOUBLE CLICK on the template at the point where you want to place the name on the certificate and that will also ENABLE 'GENERATE CERTIFICATE' button")
+
+def coord(event):                                #function to get coordinates of double click on the template
+    global width, height, ims
+    width = int(event.x) - int((670 - ims.width)/2)
+    height = int(event.y) - int((500 - ims.height)/2) - 10
+    gen_cert_button["state"] = "normal"
+
+image_canvas.bind("<Double-Button-1>", coord)   #binding double click
+
+def get_cert():                               #function to generate multiple certificate after reading the csv file
+    global font_size, img_filename
+    global width, height, names
+    global ims, image2
+
+    #algorithm for printing  
+    names = pd.read_csv(file_cvs)                #read csv file using pandas library
+    for i,row in names.iterrows():
+        empty_img = Image.open(img_filename)
+        empty_img = empty_img.resize((w, h))
+        name = str(row['NAME'])
+        name = name.title()
+        font_size = 15
+        font = ImageFont.truetype("arial", 150)
+        w1_img = empty_img.width 
+        w2, h2 = font.getsize(name)
+        if w1_img%w2 >= 2:
+             font_size = w1_img/20
+
+        font = ImageFont.truetype("arial", int(font_size))              #editing the selected template by placing the name on the template
+        image_editable = ImageDraw.Draw(empty_img)
+        image_editable.multiline_text((width, height), name, (35, 57, 75), font=font)
+        empty_img.save("{}_{}.png".format((i + 1), name.replace(" ", "_")))
+        
+    print("Process Complete!")
+    ims = Image.open("{}_{}.png".format((1), names["NAME"][0]))
+    image2 = ImageTk.PhotoImage(ims)
+    image_canvas.create_image(335, 250, anchor = CENTER, image = image2)
+
+    next_button["state"] = "normal"
+    back_button["state"] = "normal"
+
+def next_img(i_n):                             #next button to view multiple certificates generated
+    global ims, image2, image_show, names
+    global next_button, back_button
+    image_canvas.delete(image_show)
+
+    if i_n >= len(names.index):
+        return
+
+    else:
+        ims = Image.open("{}_{}.png".format((i_n + 1), names["NAME"][i_n]))              
+        image2 = ImageTk.PhotoImage(ims)
+        image_canvas.create_image(335, 250, anchor = CENTER, image = image2)
+
+        next_button = Button(root, text = "NEXT", command = lambda: next_img(i_n + 1), padx = 7, pady = 4)      #used recurssion to generate the next image
+        next_button.place(relx = 0.51, rely = 0.865, anchor= NE)
+        back_button = Button(root, text = "BACK", command = lambda: back_img(i_n - 1), padx = 7, pady = 4)      #used recurssion to generate the previous image
+        back_button.place(relx = 0.08, rely = 0.865, anchor= NE)
+    
+def back_img(i_n):                             #back button to view multiple certificates generated
+    global ims, image2, image_show, names
+    global back_button, next_button
+    image_canvas.delete(image_show)
+
+    if i_n < 0:
+        return
+
+    else:
+        ims = Image.open("{}_{}.png".format((i_n + 1), names["NAME"][i_n]))
+        image2 = ImageTk.PhotoImage(ims)
+        image_canvas.create_image(335, 250, anchor = CENTER, image = image2)
+
+        next_button = Button(root, text = "NEXT", command = lambda: next_img(i_n + 1), padx = 7, pady = 4)          #used recurssion to generate the next image
+        next_button.place(relx = 0.51, rely = 0.865, anchor= NE)
+        back_button = Button(root, text = "BACK", command = lambda: back_img(i_n - 1), padx = 7, pady = 4)          #used recurssion to generate the previous image
+        back_button.place(relx = 0.08, rely = 0.865, anchor= NE)
+    
 
 # BUTTONS DEFINAITION
 new_file_button = Button(root, text = "New Image", command= new_image)
@@ -369,6 +439,10 @@ ret_button = Button(root, text = "RETRIEVE ORIGINAL IMAGE", command = ret_img, p
 insert_text_button = Button(root, text = "INSERT TEXT", command = insert_text, padx = 10, pady = 5)
 fix_pos_button = Button(root, text = "FIX POSITION", command = fix_pos, padx = 10, pady = 5)
 face_det_button = Button(root, text = "DETECT FACE IN THE IMAGE", command = face_det, padx = 20, pady = 8)
+next_button = Button(root, text = "NEXT", command = lambda: next_img(1), padx = 7, pady = 4, state = DISABLED)
+back_button = Button(root, text = "BACK", command = back_img, padx = 7, pady = 4, state = DISABLED)
+sel_csv_button = Button(multiple_gen_frame, text = "SELECT .CSV FILE", command = open_cvs, padx = 15, pady = 8)
+gen_cert_button = Button(multiple_gen_frame, text = "GENERATE CERTIFICATES", command = get_cert, padx = 15, pady = 8, state = DISABLED)
 
 # BUTTONS EXECUTION
 new_file_button.grid(row=0,column=0)
@@ -385,7 +459,11 @@ crop_button.place(relx = 0.95, rely = 0.08, anchor= NE)
 ret_button.place(relx = 0.85, rely = 0.01, anchor= NE)
 insert_text_button.place(relx = 0.91, rely = 0.865, anchor= NE)
 fix_pos_button.place(relx = 0.994, rely = 0.865, anchor= NE)
-face_det_button.place(relx = 0.2, rely = 0.05, anchor= CENTER)
+face_det_button.place(relx = 0.2, rely = 0.07, anchor= CENTER)
+back_button.place(relx = 0.08, rely = 0.865, anchor= NE)
+next_button.place(relx = 0.51, rely = 0.865, anchor= NE)
+sel_csv_button.grid(row = 0, column = 0, padx= 10, pady = 10) 
+gen_cert_button.grid(row = 0, column = 1, padx= 10, pady = 10) 
 
 #SLIDERS
 rot_slider = Scale(root, from_= 0, to=360, length = 180, orient=HORIZONTAL)
